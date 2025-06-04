@@ -1,10 +1,37 @@
-# Python-generated files
+# Python build and cache artifacts
 __pycache__/
-*.py[oc]
+*.py[cod]             # covers .pyc, .pyo, .pyd
+*.so                  # compiled extensions
+*.egg
+*.egg-info/
 build/
 dist/
 wheels/
-*.egg-info
 
 # Virtual environments
 .venv
+
+# macOS metadata
+.DS_Store
+
+# Environment files
+.venv/
+.env
+.python-version
+.coverage
+*.log
+
+# Packaging
+*.egg-info/
+dist/
+build/
+
+# Editor/IDE artifacts
+*.swp
+*.bak
+.vscode/
+.idea/
+
+# Lock/Dependency files (optional)
+# uv.lock
+requirements.txt
