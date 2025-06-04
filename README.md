@@ -50,28 +50,27 @@ yaht/
    cd yaht
    ```
 
-2. (Optional) Create a virtual environment and install dependencies:
+2. Create and initialize a virtual environment with [uv](https://github.com/astral-sh/uv):
 
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt  # or use `uv` if preferred
+   uv venv
+   uv pip install
    ```
 
 ---
 
 ## 🚀 Running Tests
 
-To run the scorecard tests:
+Use `pytest` (preferred test runner):
 
 ```bash
-python -m unittest discover tests
+uv run pytest
 ```
 
-Or with `pytest`:
+If using `unittest` directly, you must specify the source path:
 
 ```bash
-pytest
+PYTHONPATH=src uv run python -m unittest discover tests
 ```
 
 ---
