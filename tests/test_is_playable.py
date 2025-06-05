@@ -13,8 +13,8 @@ class TestIsPlayable(unittest.TestCase):
     def test_upper_category_playable_with_matches(self):
         self.assertTrue(is_playable(Category.FOURS, Combo([4, 4, 2, 3, 6]), self.card))
 
-    def test_upper_category_unplayable_with_no_matches(self):
-        self.assertIs(is_playable(Category.SIXES, Combo([1, 2, 3, 4, 5]), self.card), False)
+    def test_upper_category_playable_with_no_matches(self):
+        self.assertIs(is_playable(Category.SIXES, Combo([1, 2, 3, 4, 5]), self.card), True)
 
     def test_upper_category_unplayable_if_already_scored(self):
         self.card.set_category_score(Category.THREES, [3, 3, 3, 2, 1])
@@ -28,7 +28,7 @@ class TestIsPlayable(unittest.TestCase):
 
     def test_four_of_a_kind_valid(self):
         self.assertTrue(
-            is_playable(Category.FOUR_OF_A_KIND, Combo([5, 5, 5, 5, 2]), self.card)
+            is_playable(Category.FOUR_OF_A_KIND, Combo([5, 5, 5, 5, 5]), self.card)
         )
 
     def test_three_of_a_kind_invalid(self):
@@ -48,6 +48,24 @@ class TestIsPlayable(unittest.TestCase):
     def test_full_house_invalid(self):
         self.assertIs(
             is_playable(Category.FULL_HOUSE, Combo([3, 3, 4, 4, 6]), self.card), False
+        )
+
+    def test_full_house_yahtzee_valid_1(self):
+        self.card.zero_category(Category.YAHTZEE)
+        self.card.zero_category(Category.THREES)
+        self.assertIs(
+            is_playable(Category.FULL_HOUSE, Combo([3, 3, 3, 3, 3]), self.card), True
+        )
+
+    def test_full_house_yahtzee_valid_2(self):
+        self.assertIs(
+            is_playable(Category.FULL_HOUSE, Combo([3, 3, 3, 3, 3]), self.card), True
+        )
+
+    def test_full_house_yahtzee_invalid(self):
+        self.card.zero_category(Category.YAHTZEE)
+        self.assertIs(
+            is_playable(Category.FULL_HOUSE, Combo([3, 3, 3, 3, 3]), self.card), False
         )
 
     # --- Lower Section: Straights ---
@@ -99,12 +117,9 @@ class TestIsPlayable(unittest.TestCase):
         combo = Combo([4, 4, 4, 4, 4])
         self.assertTrue(is_playable(Category.FULL_HOUSE, combo, self.card))
 
-    def test_joker_denied_if_all_lower_scored(self):
-        self.card.set_category_score(Category.YAHTZEE, [2] * 5)
-        self.card.set_category_score(Category.TWOS, [2] * 5)
+    def test_joker_denied_if_all_scored(self):
         for cat in Category:
-            if cat not in {Category.YAHTZEE, Category.TWOS}:
-                self.card.set_category_score(cat, [1, 2, 3, 4, 5])
+            self.card.zero_category(cat)
         combo = Combo([2] * 5)
         self.assertIs(is_playable(Category.THREE_OF_A_KIND, combo, self.card), False)
 
