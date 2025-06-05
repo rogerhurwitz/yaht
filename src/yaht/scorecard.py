@@ -1,5 +1,4 @@
 # src/yaht/scorecard.py
-from yaht.constants import DIE_TO_UPPER_CATEGORY, Category
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -7,6 +6,7 @@ from yaht.exceptions import (
     InvalidCategoryError,
 )
 from yaht.scoring import score
+from yaht.utils import DIE_TO_UPPER_CATEGORY, Category
 
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63
@@ -18,6 +18,11 @@ UPPER_CATEGORY_TO_DIE = {v: k for k, v in DIE_TO_UPPER_CATEGORY.items()}
 
 class Scorecard:
     """Tracks the score for a single player."""
+
+    @staticmethod
+    def is_yahtzee(dice: list[int]) -> bool:
+        """Check if all dice have the same value (Yahtzee)."""
+        return len(set(dice)) == 1
 
     def __init__(self):
         # Initialize all categories to None (not scored yet)
@@ -44,7 +49,7 @@ class Scorecard:
 
         # --- Apply Joker Rules ---
 
-        if self._is_yahtzee(dice) and self.scores[Category.YAHTZEE] is not None:
+        if self.is_yahtzee(dice) and self.scores[Category.YAHTZEE] is not None:
             upper_category = DIE_TO_UPPER_CATEGORY[dice[0]]
             if self.scores[upper_category] is None and category != upper_category:
                 raise InvalidCategoryError(
@@ -58,7 +63,7 @@ class Scorecard:
 
         # Handle Yahtzee bonus
         if (
-            self._is_yahtzee(dice)
+            self.is_yahtzee(dice)
             and category != Category.YAHTZEE
             and self.scores[Category.YAHTZEE] == 50
         ):
@@ -105,10 +110,6 @@ class Scorecard:
 
         # Return total score
         return upper_score + upper_bonus + lower_score + yahtzee_bonus
-
-    def _is_yahtzee(self, dice: list[int]) -> bool:
-        """Check if all dice have the same value (Yahtzee)."""
-        return len(set(dice)) == 1
 
     def _raise_on_invalid_dice(self, dice: list[int]) -> None:
         if len(dice) != 5:

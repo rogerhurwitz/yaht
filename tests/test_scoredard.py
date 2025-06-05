@@ -1,6 +1,5 @@
 import unittest
 
-from yaht.constants import Category
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -9,6 +8,7 @@ from yaht.exceptions import (
 )
 from yaht.scorecard import UPPER_CATEGORY_TO_DIE, Scorecard
 from yaht.scoring import score
+from yaht.utils import Category
 
 
 class BaseScorecardTest(unittest.TestCase):

@@ -171,7 +171,7 @@ not earn a YAHTZEE bonus; however, you must fill in one of the 13 boxes on your
 score card according to the JOKER RULES below.
 
 **JOKER RULES:** Score the total of all 5 dice in the appropriate Upper Section
-box. If this box has already been filled in, score as follows in any lope Lower
+box. If this box has already been filled in, score as follows in any free Lower
 Section box:
 - *3 of a Kind:* Total of all 5 dice
 - *4 of a Kind:* Total of all 5 dice

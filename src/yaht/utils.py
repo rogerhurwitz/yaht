@@ -27,3 +27,10 @@ DIE_TO_UPPER_CATEGORY = {
 }
 
 UPPER_CATEGORY_TO_DIE = {v: k for k, v in DIE_TO_UPPER_CATEGORY.items()}
+
+Combo = list[int]
+
+
+def is_yahtzee(combo: Combo) -> bool:
+    """True if combo is a Yahtzee else False."""
+    return len(set(combo)) == 1
