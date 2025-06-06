@@ -1,8 +1,8 @@
 # src/yaht/scoring.py
 from collections import Counter
 
+from yaht.common import UPPER_CATEGORY_TO_DIE, Category, is_yahtzee
 from yaht.exceptions import InvalidCategoryError
-from yaht.utils import UPPER_CATEGORY_TO_DIE, Category, is_yahtzee
 
 
 def score(category: Category, dice: list[int]) -> int:

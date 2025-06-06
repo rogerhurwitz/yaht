@@ -32,8 +32,5 @@ Combo = list[int]
 
 
 def is_yahtzee(combo: Combo) -> bool:
-<<<<<<<< HEAD:src/yaht/utils.py
     """True if combo is a Yahtzee else False."""
-========
->>>>>>>> main:src/yaht/common.py
     return len(set(combo)) == 1

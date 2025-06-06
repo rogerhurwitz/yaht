@@ -1,4 +1,5 @@
 # src/yaht/scorecard.py
+from yaht.common import DIE_TO_UPPER_CATEGORY, Category
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -6,7 +7,6 @@ from yaht.exceptions import (
     InvalidCategoryError,
 )
 from yaht.scoring import score
-from yaht.utils import DIE_TO_UPPER_CATEGORY, Category
 
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63

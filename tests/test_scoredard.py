@@ -1,5 +1,6 @@
 import unittest
 
+from yaht.common import Category, Combo
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -8,14 +9,13 @@ from yaht.exceptions import (
 )
 from yaht.scorecard import UPPER_CATEGORY_TO_DIE, Scorecard
 from yaht.scoring import score
-from yaht.utils import Category
 
 
 class BaseScorecardTest(unittest.TestCase):
     def setUp(self):
         self.card = Scorecard()
 
-    def assert_score(self, category, dice, expected):
+    def assert_score(self, category: Category, dice: Combo, expected: int):
         self.card.set_category_score(category, dice)
         self.assertEqual(self.card.get_category_score(category), expected)
 

@@ -1,8 +1,8 @@
 # src/yaht/validate.py
 from collections import Counter
 
+from yaht.common import DIE_TO_UPPER_CATEGORY, Category, Combo, is_yahtzee
 from yaht.scorecard import Scorecard
-from yaht.utils import DIE_TO_UPPER_CATEGORY, Category, Combo, is_yahtzee
 
 
 def is_playable(category: Category, combo: Combo, card: Scorecard) -> bool:

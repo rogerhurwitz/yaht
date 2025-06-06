@@ -1,7 +1,7 @@
 import unittest
 
+from yaht.common import Category, Combo
 from yaht.scorecard import Scorecard
-from yaht.utils import Category, Combo
 from yaht.validate import is_playable
 
 
