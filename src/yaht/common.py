@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Protocol
 
 
 class Category(Enum):
@@ -17,6 +18,25 @@ class Category(Enum):
     CHANCE = auto()
 
 
+UPPER_SECTION_CATEGORIES = [
+    Category.ACES,
+    Category.TWOS,
+    Category.THREES,
+    Category.FOURS,
+    Category.FIVES,
+    Category.SIXES,
+]
+
+LOWER_SECTION_CATEGORIES = [
+    Category.THREE_OF_A_KIND,
+    Category.FOUR_OF_A_KIND,
+    Category.FULL_HOUSE,
+    Category.SMALL_STRAIGHT,
+    Category.LARGE_STRAIGHT,
+    Category.YAHTZEE,
+    Category.CHANCE,
+]
+
 DIE_TO_UPPER_CATEGORY = {
     1: Category.ACES,
     2: Category.TWOS,
@@ -29,6 +49,10 @@ DIE_TO_UPPER_CATEGORY = {
 UPPER_CATEGORY_TO_DIE = {v: k for k, v in DIE_TO_UPPER_CATEGORY.items()}
 
 Combo = list[int]
+
+
+class Scorable(Protocol):
+    scores: dict[Category, int | None]
 
 
 def is_yahtzee(combo: Combo) -> bool:

@@ -1,5 +1,5 @@
 # src/yaht/scorecard.py
-from yaht.common import DIE_TO_UPPER_CATEGORY, Category
+from yaht.common import Category, is_yahtzee
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -14,16 +14,13 @@ UPPER_BONUS_THRESHOLD = 63
 YAHTZEE_BONUS_SCORE = 100
 
 
-UPPER_CATEGORY_TO_DIE = {v: k for k, v in DIE_TO_UPPER_CATEGORY.items()}
-
-
 class Scorecard:
     """Tracks the score for a single player."""
 
     @staticmethod
     def is_yahtzee(dice: list[int]) -> bool:
         """Check if all dice have the same value (Yahtzee)."""
-        return len(set(dice)) == 1
+        return is_yahtzee(dice)
 
     def __init__(self):
         # Initialize all categories to None (not scored yet)
@@ -38,21 +35,23 @@ class Scorecard:
     def set_category_score(self, category: Category, dice: list[int]) -> None:
         """Set score for specified category based on dice values."""
 
-        # --- Check for Input Errors ---
+        #  --- Check for Input Errors  ---
+
         if category not in self.scores:
             raise InvalidCategoryError(f"Unknown category: {category}")
 
         if self.scores[category] is not None:
             raise CategoryAlreadyScored(f"Category {category.name} has already been scored")
 
-        # Use centralized validation from validate.py for dice, combo, and rules (e.g., Joker)
-        if not is_playable(category, dice, self.scores):
-            raise InvalidCategoryError(
-                f"Invalid combination or rules violation for category {category.name} with dice {dice}"
-            )
+        self._raise_on_invalid_dice(dice)
+
+        # --- Validate playability ---
+        if not is_playable(category, dice, self):
+            raise InvalidCategoryError(f"Unplayable {category.name} combination: {dice}")
 
         # --- Begin Scoring Dice ---
-        # Call the appropriate scorer (assumes validation passed)
+
+        # call the appropriate scorer
         self.scores[category] = score(category, dice)
 
         # Handle Yahtzee bonus
