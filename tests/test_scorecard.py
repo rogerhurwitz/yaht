@@ -1,13 +1,13 @@
 import unittest
 
-from yaht.common import Category, Combo
+from yaht.common import UPPER_CATEGORY_TO_DIE, Category, Combo
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
     DieValueError,
     InvalidCategoryError,
 )
-from yaht.scorecard import UPPER_CATEGORY_TO_DIE, Scorecard
+from yaht.scorecard import Scorecard
 from yaht.scoring import score
 
 

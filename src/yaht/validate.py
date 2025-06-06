@@ -1,11 +1,14 @@
 # src/yaht/validate.py
 from collections import Counter
+from typing import TYPE_CHECKING
 
 from yaht.common import DIE_TO_UPPER_CATEGORY, Category, Combo, is_yahtzee
-from yaht.scorecard import Scorecard
+
+if TYPE_CHECKING:
+    from yaht.scorecard import Scorecard
 
 
-def is_playable(category: Category, combo: Combo, card: Scorecard) -> bool:
+def is_playable(category: Category, combo: Combo, card: "Scorecard") -> bool:
     """True if combo is playable for the specified category/card else False.
 
     Validates based on Yahtzee rules, including standard category requirements
