@@ -1,5 +1,4 @@
 # src/yaht/scorecard.py
-from yaht.common import Category, is_yahtzee
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -7,7 +6,8 @@ from yaht.exceptions import (
     InvalidCategoryError,
 )
 from yaht.scoring import score
-from yaht.validate import is_playable
+from yaht.types import Category
+from yaht.validate import is_playable, is_yahtzee
 
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63
@@ -16,11 +16,6 @@ YAHTZEE_BONUS_SCORE = 100
 
 class Scorecard:
     """Tracks the score for a single player."""
-
-    @staticmethod
-    def is_yahtzee(dice: list[int]) -> bool:
-        """Check if all dice have the same value (Yahtzee)."""
-        return is_yahtzee(dice)
 
     def __init__(self):
         # Initialize all categories to None (not scored yet)
@@ -56,7 +51,7 @@ class Scorecard:
 
         # Handle Yahtzee bonus
         if (
-            self.is_yahtzee(dice)
+            is_yahtzee(dice)
             and category != Category.YAHTZEE
             and self.scores[Category.YAHTZEE] == 50
         ):
@@ -73,30 +68,17 @@ class Scorecard:
     def get_score(self) -> int:
         """Get the score across all categories including bonuses."""
         # Calculate upper section score
-        upper_section = [
-            Category.ACES,
-            Category.TWOS,
-            Category.THREES,
-            Category.FOURS,
-            Category.FIVES,
-            Category.SIXES,
-        ]
-        upper_score = sum(self.get_category_score(cat) for cat in upper_section)
+        upper_score = sum(
+            self.get_category_score(cat) for cat in Category.get_upper_categories()
+        )
 
         # Add upper section bonus if applicable
         upper_bonus = UPPER_BONUS_SCORE if upper_score >= UPPER_BONUS_THRESHOLD else 0
 
         # Calculate lower section score
-        lower_section = [
-            Category.THREE_OF_A_KIND,
-            Category.FOUR_OF_A_KIND,
-            Category.FULL_HOUSE,
-            Category.SMALL_STRAIGHT,
-            Category.LARGE_STRAIGHT,
-            Category.YAHTZEE,
-            Category.CHANCE,
-        ]
-        lower_score = sum(self.get_category_score(cat) for cat in lower_section)
+        lower_score = sum(
+            self.get_category_score(cat) for cat in Category.get_lower_categories()
+        )
 
         # Add Yahtzee bonus
         yahtzee_bonus = self.yahtzee_bonus_count * YAHTZEE_BONUS_SCORE

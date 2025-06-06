@@ -1,6 +1,6 @@
 import unittest
+from typing import cast
 
-from yaht.common import UPPER_CATEGORY_TO_DIE, Category, Combo
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -9,13 +9,14 @@ from yaht.exceptions import (
 )
 from yaht.scorecard import Scorecard
 from yaht.scoring import score
+from yaht.types import Category, DiceCombo
 
 
 class BaseScorecardTest(unittest.TestCase):
     def setUp(self):
         self.card = Scorecard()
 
-    def assert_score(self, category: Category, dice: Combo, expected: int):
+    def assert_score(self, category: Category, dice: DiceCombo, expected: int):
         self.card.set_category_score(category, dice)
         self.assertEqual(self.card.get_category_score(category), expected)
 
@@ -28,15 +29,9 @@ class TestUpperSection(BaseScorecardTest):
         self.assert_score(Category.TWOS, [1, 1, 3, 4, 5], 0)
 
     def test_upper_bonus_awarded(self):
-        for category in [
-            Category.SIXES,
-            Category.FIVES,
-            Category.FOURS,
-            Category.THREES,
-            Category.TWOS,
-            Category.ACES,
-        ]:
-            self.card.set_category_score(category, [UPPER_CATEGORY_TO_DIE[category]] * 5)
+        for category in Category.get_upper_categories():
+            assert category.die_value is not None
+            self.card.set_category_score(category, [category.die_value] * 5)
         self.assertGreaterEqual(self.card.get_score(), 63 + 35)  # includes bonus
 
 
@@ -73,7 +68,7 @@ class TestValidation(BaseScorecardTest):
 
     def test_invalid_category(self):
         with self.assertRaises(InvalidCategoryError):
-            self.card.get_category_score("INVALID")
+            self.card.get_category_score(cast(Category, "INVALID"))
 
 
 class TestBonuses(BaseScorecardTest):
@@ -99,7 +94,7 @@ class TestBonuses(BaseScorecardTest):
 class TestScoringModule(BaseScorecardTest):
     def test_invalid_category(self):
         with self.assertRaises(ValueError):
-            score("INVALID", [1, 2, 3, 4, 5])
+            score(cast(Category, "INVALID"), [1, 2, 3, 4, 5])
 
 
 class TestOriginalMetrics(BaseScorecardTest):
