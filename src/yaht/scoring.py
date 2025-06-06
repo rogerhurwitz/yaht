@@ -1,7 +1,7 @@
 # src/yaht/scoring.py
 from collections import Counter
 
-from yaht.constants import UPPER_CATEGORY_TO_DIE, Category
+from yaht.common import UPPER_CATEGORY_TO_DIE, Category
 
 
 def score(category: Category, dice: list[int]) -> int:

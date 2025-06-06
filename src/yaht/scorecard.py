@@ -1,5 +1,5 @@
 # src/yaht/scorecard.py
-from yaht.constants import DIE_TO_UPPER_CATEGORY, Category
+from yaht.common import DIE_TO_UPPER_CATEGORY, Category
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,

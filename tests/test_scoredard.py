@@ -1,6 +1,6 @@
 import unittest
 
-from yaht.constants import Category
+from yaht.common import Category
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
