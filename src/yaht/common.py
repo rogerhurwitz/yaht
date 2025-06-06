@@ -51,10 +51,6 @@ UPPER_CATEGORY_TO_DIE = {v: k for k, v in DIE_TO_UPPER_CATEGORY.items()}
 Combo = list[int]
 
 
-class Scorable(Protocol):
-    scores: dict[Category, int | None]
-
-
 def is_yahtzee(combo: Combo) -> bool:
     """True if combo is a Yahtzee else False."""
     return len(set(combo)) == 1
