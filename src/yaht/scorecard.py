@@ -7,6 +7,7 @@ from yaht.exceptions import (
     InvalidCategoryError,
 )
 from yaht.scoring import score
+from yaht.validate import is_playable
 
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63
@@ -37,28 +38,21 @@ class Scorecard:
     def set_category_score(self, category: Category, dice: list[int]) -> None:
         """Set score for specified category based on dice values."""
 
-        #  --- Check for Input Errors  ---
-
+        # --- Check for Input Errors ---
         if category not in self.scores:
             raise InvalidCategoryError(f"Unknown category: {category}")
 
         if self.scores[category] is not None:
             raise CategoryAlreadyScored(f"Category {category.name} has already been scored")
 
-        self._raise_on_invalid_dice(dice)
-
-        # --- Apply Joker Rules ---
-
-        if self.is_yahtzee(dice) and self.scores[Category.YAHTZEE] is not None:
-            upper_category = DIE_TO_UPPER_CATEGORY[dice[0]]
-            if self.scores[upper_category] is None and category != upper_category:
-                raise InvalidCategoryError(
-                    f"Must score Yahtzee in {upper_category.name} before choosing another category."
-                )
+        # Use centralized validation from validate.py for dice, combo, and rules (e.g., Joker)
+        if not is_playable(category, dice, self.scores):
+            raise InvalidCategoryError(
+                f"Invalid combination or rules violation for category {category.name} with dice {dice}"
+            )
 
         # --- Begin Scoring Dice ---
-
-        # call the appropriate scorer
+        # Call the appropriate scorer (assumes validation passed)
         self.scores[category] = score(category, dice)
 
         # Handle Yahtzee bonus

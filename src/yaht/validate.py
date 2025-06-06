@@ -2,17 +2,18 @@
 from collections import Counter
 
 from yaht.common import DIE_TO_UPPER_CATEGORY, Category, Combo, is_yahtzee
-from yaht.scorecard import Scorecard
+
+# from yaht.scorecard import Scorecard
 
 
-def is_playable(category: Category, combo: Combo, card: Scorecard) -> bool:
+def is_playable(category: Category, combo: Combo, scores: dict[Category, int | None]) -> bool:
     """True if combo is playable for the specified category/card else False.
 
     Validates based on Yahtzee rules, including standard category requirements
     and special Joker rules for additional Yahtzees.
     """
     # Check if the category is already scored (not playable if it is)
-    if card.scores.get(category) is not None:
+    if scores.get(category) is not None:
         return False
 
     # Validate dice count and values (aligns with Scorecard._raise_on_invalid_dice)
@@ -20,11 +21,11 @@ def is_playable(category: Category, combo: Combo, card: Scorecard) -> bool:
         return False
 
     # Check for Yahtzee and apply Joker rules if Yahtzee is already scored
-    yahtzee_scored = card.scores[Category.YAHTZEE] is not None
+    yahtzee_scored = scores[Category.YAHTZEE] is not None
     if is_yahtzee(combo) and yahtzee_scored:
         # Determine the corresponding Upper Section category for this Yahtzee
         upper_cat = DIE_TO_UPPER_CATEGORY.get(combo[0])
-        if upper_cat and card.scores[upper_cat] is None:
+        if upper_cat and scores[upper_cat] is None:
             # Per rules and Scorecard logic, must choose the available Upper Section category
             return category == upper_cat
         else:
