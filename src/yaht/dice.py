@@ -4,6 +4,8 @@ from typing import Callable
 
 from yaht.exceptions import DiceRollCountError, DiceRollIndexError
 
+DiceList = list[int]
+
 
 class Dice:
     def __init__(self, rng: Callable[[], int] = lambda: random.randint(1, 6)):
@@ -39,9 +41,8 @@ class Dice:
                 raise DiceRollIndexError(f"Invalid die index: {idx}. Must not be a duplicate.")
             seen.add(idx)
 
-        # Roll the specified dice
+        # Roll only the specified dice
         for idx in indices:
             self._values[idx] = self._rng()
 
-        # Increment roll count
         self._roll_count += 1

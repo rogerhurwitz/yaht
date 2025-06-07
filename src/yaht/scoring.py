@@ -1,8 +1,9 @@
 # src/yaht/scoring.py
-from yaht.types import Category, DiceCombo
+from yaht.category import Category
+from yaht.dice import DiceList
 
 
-def score(category: Category, combo: DiceCombo) -> int:
+def score(category: Category, combo: DiceList) -> int:
     # We'll rely on the caller to validate playability
     match category:
         case (
@@ -32,7 +33,7 @@ def score(category: Category, combo: DiceCombo) -> int:
             raise ValueError(f"Unknown category: {category}")
 
 
-def _score_upper_category(category: Category, combo: DiceCombo) -> int:
+def _score_upper_category(category: Category, combo: DiceList) -> int:
     """Sum only dice values matching category (e.g, Twos: [2, 3, 4, 2, 5] -> 4."""
     target_die = category.die_value
     return sum(d for d in combo if d == target_die)

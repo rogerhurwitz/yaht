@@ -2,18 +2,21 @@
 from collections import Counter
 from typing import TYPE_CHECKING
 
-from yaht.types import Category, DiceCombo
+from yaht.category import Category
+from yaht.dice import DiceList
 
 if TYPE_CHECKING:
     from yaht.scorecard import Scorecard
 
 
-def is_yahtzee(dice: DiceCombo) -> bool:
+def is_yahtzee(dice: DiceList) -> bool:
     """Check if all dice have the same value (Yahtzee)."""
     return len(set(dice)) == 1
 
 
-def is_playable(category: Category, combo: DiceCombo, card: "Scorecard") -> bool:
+def is_playable(
+    category: Category, combo: DiceList, card: "Scorecard", match_zero_playable: bool = False
+) -> bool:
     """True if combo is playable for the specified category/card else False.
 
     Validates based on Yahtzee rules, including standard category requirements
@@ -47,6 +50,10 @@ def is_playable(category: Category, combo: DiceCombo, card: "Scorecard") -> bool
         return False
 
     # Standard validation for non-Joker cases
+
+    if match_zero_playable:
+        return True  # Any unscored category is okay if joker rules not in effect
+
     combo_counter = Counter(combo)
     sorted_combo = sorted(combo)
 

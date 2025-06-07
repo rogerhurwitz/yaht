@@ -1,4 +1,8 @@
 # src/yaht/scorecard.py
+
+from typing import Callable
+
+from yaht.category import Category
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -7,11 +11,35 @@ from yaht.exceptions import (
 )
 from yaht.playable import is_playable, is_yahtzee
 from yaht.scoring import score
-from yaht.types import Category, DiceCombo
 
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63
 YAHTZEE_BONUS_SCORE = 100
+
+
+class ScorecardView:
+    def __init__(
+        self,
+        get_category_score: Callable[[Category, bool], int],
+        get_score: Callable[[], int],
+    ):
+        self._card_get_category_score = get_category_score
+        self._card_get_score = get_score
+
+    def get_unscored_categories(self) -> list[Category]:
+        category_list: list[Category] = []
+        for category in Category:
+            try:
+                self._card_get_category_score(category, True)
+            except InvalidCategoryError:
+                category_list.append(category)
+        return category_list
+
+    def get_category_score(self, category: Category, strict: bool = False) -> int:
+        return self._card_get_category_score(category, strict)
+
+    def get_score(self) -> int:
+        return self._card_get_score()
 
 
 class Scorecard:
@@ -46,7 +74,7 @@ class Scorecard:
 
         # --- Begin Scoring Dice ---
 
-        # call the appropriate scorer
+        # Call the appropriate scorer
         self.scores[category] = score(category, dice)
 
         # Handle Yahtzee bonus
@@ -57,13 +85,15 @@ class Scorecard:
         ):
             self.yahtzee_bonus_count += 1
 
-    def get_category_score(self, category: Category) -> int:
+    def get_category_score(self, category: Category, strict: bool = False) -> int:
         """Get the score associated with a particular category."""
         if category not in self.scores:
             raise InvalidCategoryError(f"Unknown category: {category}")
+        if self.scores[category] is None and strict:
+            raise InvalidCategoryError(f"Category unscored: {category}")
 
-        score = self.scores[category]
-        return score if score is not None else 0
+        score_or_none = self.scores[category]
+        return score_or_none if score_or_none is not None else 0
 
     def get_score(self) -> int:
         """Get the score across all categories including bonuses."""
@@ -86,16 +116,21 @@ class Scorecard:
         # Return total score
         return upper_score + upper_bonus + lower_score + yahtzee_bonus
 
+    def get_unscored_categories(self) -> list[Category]:
+        """Return a list of categories that have not been scored yet."""
+        return [cat for cat, score in self.scores.items() if score is None]
+
     def _raise_on_invalid_dice(self, dice: list[int]) -> None:
         if len(dice) != 5:
             raise DiceCountError(f"Invalid dice count: {len(dice)}")
         if any(d < 1 or d > 6 for d in dice):
             raise DieValueError("The value of all dice must be between 1 and 6.")
 
-    def get_playable_categories(self, dice: DiceCombo) -> list[Category]:
-        """Return list of categories that are valid for the given dice and this scorecard."""
-        return [category for category in Category if is_playable(category, dice, self)]
-
     def __str__(self) -> str:
         scored = {cat.name: score for cat, score in self.scores.items() if score is not None}
         return f"Scorecard({scored}, bonuses={self.yahtzee_bonus_count})"
+
+    @property
+    def view(self) -> ScorecardView:
+        """Return a read-only view of the scorecard."""
+        return ScorecardView(self.get_category_score, self.get_score)

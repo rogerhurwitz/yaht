@@ -1,22 +1,24 @@
 import unittest
 from typing import cast
 
+from yaht.category import Category
+from yaht.dice import DiceList
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
     DieValueError,
     InvalidCategoryError,
 )
+from yaht.playable import is_playable
 from yaht.scorecard import Scorecard
 from yaht.scoring import score
-from yaht.types import Category, DiceCombo
 
 
 class BaseScorecardTest(unittest.TestCase):
     def setUp(self):
         self.card = Scorecard()
 
-    def assert_score(self, category: Category, dice: DiceCombo, expected: int):
+    def assert_score(self, category: Category, dice: DiceList, expected: int):
         self.card.set_category_score(category, dice)
         self.assertEqual(self.card.get_category_score(category), expected)
 
@@ -188,6 +190,36 @@ class TestOriginalMetrics(BaseScorecardTest):
             self.card.set_category_score(Category.CHANCE, [6, 6, 6, 6, 6])
 
 
+class TestGetUnscoredCategoriees(BaseScorecardTest):
+    def setUp(self):
+        self.allcats = [cat for cat in Category]
+        super().setUp()
+
+    def test_no_scored(self):
+        unscored = self.card.get_unscored_categories()
+        self.assertEqual(set(unscored), set(self.allcats))
+
+    def test_one_scored(self):
+        self.card.zero_category(Category.ACES)
+        unscored = self.card.get_unscored_categories()
+        self.assertFalse(Category.ACES in unscored)
+        self.assertEqual(len(unscored), len(self.allcats) - 1)
+
+    def test_two_scored(self):
+        self.card.zero_category(Category.ACES)
+        self.card.zero_category(Category.YAHTZEE)
+        unscored = self.card.get_unscored_categories()
+        self.assertFalse(Category.ACES in unscored)
+        self.assertFalse(Category.YAHTZEE in unscored)
+        self.assertEqual(len(unscored), len(self.allcats) - 2)
+
+    def test_all_scored(self):
+        for cat in Category:
+            self.card.zero_category(cat)
+        unscored = self.card.get_unscored_categories()
+        self.assertCountEqual(unscored, [])
+
+
 # Update the relevant tests to reflect that all unscored Upper Section categories are playable
 class TestGetPlayableCategories(BaseScorecardTest):
     def test_upper_section_and_small_straight(self):
@@ -202,7 +234,8 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.SMALL_STRAIGHT,
             Category.CHANCE,
         }
-        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        self.assertEqual(set(playable), expected)
 
     def test_three_of_a_kind_and_upper_options(self):
         dice = [5, 5, 5, 2, 3]
@@ -216,7 +249,8 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.SIXES,
             Category.CHANCE,
         }
-        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        self.assertEqual(set(playable), expected)
 
     def test_full_house_included(self):
         dice = [3, 3, 3, 6, 6]
@@ -231,7 +265,8 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.FIVES,
             Category.CHANCE,
         }
-        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        self.assertEqual(set(playable), expected)
 
     def test_yahtzee_joker_rule_behavior(self):
         self.card.set_category_score(Category.YAHTZEE, [6, 6, 6, 6, 6])
@@ -239,7 +274,8 @@ class TestGetPlayableCategories(BaseScorecardTest):
 
         # Case 1: SIXES is open — must use SIXES
         expected = {Category.SIXES}
-        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        self.assertEqual(set(playable), expected)
 
         # Case 2: SIXES scored — Joker rules allow specific Lower categories
         self.card.set_category_score(Category.SIXES, [6, 6, 6, 6, 6])
@@ -251,13 +287,14 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.LARGE_STRAIGHT,
             Category.CHANCE,
         }
-        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        self.assertEqual(set(playable), expected)
 
     def test_category_already_scored_excluded(self):
         self.card.set_category_score(Category.FIVES, [5, 5, 5, 2, 3])
         dice = [5, 5, 5, 2, 3]
-        result = self.card.get_playable_categories(dice)
-        self.assertNotIn(Category.FIVES, result)
+        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        self.assertNotIn(Category.FIVES, playable)
 
     def test_unplayable_combo_limited_options(self):
         dice = [1, 1, 2, 2, 3]
@@ -270,7 +307,8 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.SIXES,
             Category.CHANCE,
         }
-        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        self.assertEqual(set(playable), expected)
 
 
 if __name__ == "__main__":

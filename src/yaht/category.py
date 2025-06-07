@@ -1,8 +1,6 @@
 from enum import Enum
 from typing import NamedTuple
 
-DiceCombo = list[int]
-
 Section = Enum("Section", ["UPPER", "LOWER"])
 
 
