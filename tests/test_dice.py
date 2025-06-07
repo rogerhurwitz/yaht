@@ -45,6 +45,14 @@ class TestDice(unittest.TestCase):
         values[0] = 99
         self.assertNotEqual(values, self.dice.values)
 
+    def test_reroll_with_duplicate_indices(self):
+        with self.assertRaises(DiceRollIndexError):
+            self.dice.reroll([0, 1, 2, 0])
+
+    def test_reroll_with_too_many_indices(self):
+        with self.assertRaises(DiceRollIndexError):
+            self.dice.reroll([0, 1, 2, 3, 4, 5])
+
 
 if __name__ == "__main__":
     unittest.main()
