@@ -7,7 +7,7 @@ Section = Enum("Section", ["UPPER", "LOWER"])
 
 
 class CategoryValue(NamedTuple):
-    id: str
+    catid: str
     die_value: int | None
     section: Section
 

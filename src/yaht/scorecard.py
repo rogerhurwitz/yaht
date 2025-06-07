@@ -5,9 +5,9 @@ from yaht.exceptions import (
     DieValueError,
     InvalidCategoryError,
 )
+from yaht.playable import is_playable, is_yahtzee
 from yaht.scoring import score
-from yaht.types import Category
-from yaht.validate import is_playable, is_yahtzee
+from yaht.types import Category, DiceCombo
 
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63
@@ -91,6 +91,10 @@ class Scorecard:
             raise DiceCountError(f"Invalid dice count: {len(dice)}")
         if any(d < 1 or d > 6 for d in dice):
             raise DieValueError("The value of all dice must be between 1 and 6.")
+
+    def get_playable_categories(self, dice: DiceCombo) -> list[Category]:
+        """Return list of categories that are valid for the given dice and this scorecard."""
+        return [category for category in Category if is_playable(category, dice, self)]
 
     def __str__(self) -> str:
         scored = {cat.name: score for cat, score in self.scores.items() if score is not None}

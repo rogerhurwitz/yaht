@@ -1,8 +1,8 @@
 import unittest
 
+from yaht.playable import is_playable
 from yaht.scorecard import Scorecard
 from yaht.types import Category, DiceCombo
-from yaht.validate import is_playable
 
 
 class TestIsPlayable(unittest.TestCase):

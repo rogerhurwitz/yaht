@@ -188,5 +188,90 @@ class TestOriginalMetrics(BaseScorecardTest):
             self.card.set_category_score(Category.CHANCE, [6, 6, 6, 6, 6])
 
 
+# Update the relevant tests to reflect that all unscored Upper Section categories are playable
+class TestGetPlayableCategories(BaseScorecardTest):
+    def test_upper_section_and_small_straight(self):
+        dice = [1, 2, 3, 4, 6]
+        expected = {
+            Category.ACES,
+            Category.TWOS,
+            Category.THREES,
+            Category.FOURS,
+            Category.FIVES,  # now explicitly valid even though score would be 0
+            Category.SIXES,
+            Category.SMALL_STRAIGHT,
+            Category.CHANCE,
+        }
+        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+
+    def test_three_of_a_kind_and_upper_options(self):
+        dice = [5, 5, 5, 2, 3]
+        expected = {
+            Category.THREE_OF_A_KIND,
+            Category.FIVES,
+            Category.TWOS,
+            Category.THREES,
+            Category.ACES,  # valid even if it would score 0
+            Category.FOURS,
+            Category.SIXES,
+            Category.CHANCE,
+        }
+        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+
+    def test_full_house_included(self):
+        dice = [3, 3, 3, 6, 6]
+        expected = {
+            Category.FULL_HOUSE,
+            Category.THREE_OF_A_KIND,
+            Category.THREES,
+            Category.SIXES,
+            Category.ACES,
+            Category.TWOS,
+            Category.FOURS,
+            Category.FIVES,
+            Category.CHANCE,
+        }
+        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+
+    def test_yahtzee_joker_rule_behavior(self):
+        self.card.set_category_score(Category.YAHTZEE, [6, 6, 6, 6, 6])
+        dice = [6, 6, 6, 6, 6]
+
+        # Case 1: SIXES is open — must use SIXES
+        expected = {Category.SIXES}
+        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+
+        # Case 2: SIXES scored — Joker rules allow specific Lower categories
+        self.card.set_category_score(Category.SIXES, [6, 6, 6, 6, 6])
+        expected = {
+            Category.THREE_OF_A_KIND,
+            Category.FOUR_OF_A_KIND,
+            Category.FULL_HOUSE,
+            Category.SMALL_STRAIGHT,
+            Category.LARGE_STRAIGHT,
+            Category.CHANCE,
+        }
+        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+
+    def test_category_already_scored_excluded(self):
+        self.card.set_category_score(Category.FIVES, [5, 5, 5, 2, 3])
+        dice = [5, 5, 5, 2, 3]
+        result = self.card.get_playable_categories(dice)
+        self.assertNotIn(Category.FIVES, result)
+
+    def test_unplayable_combo_limited_options(self):
+        dice = [1, 1, 2, 2, 3]
+        expected = {
+            Category.ACES,
+            Category.TWOS,
+            Category.THREES,
+            Category.FOURS,
+            Category.FIVES,
+            Category.SIXES,
+            Category.CHANCE,
+        }
+        self.assertEqual(set(self.card.get_playable_categories(dice)), expected)
+
+
 if __name__ == "__main__":
     unittest.main()
