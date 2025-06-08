@@ -1,22 +1,13 @@
 # src/yaht/dice.py
 import random
-from collections import Counter  # Added for frequency counting in map methods
-from typing import Callable, TypeAlias
+from typing import Any, Callable, Iterator, TypeAlias
 
-from yaht.category import Category
-from yaht.exceptions import (  # Added DiceCountError and DieValueError for validation
+from yaht.exceptions import (
     DiceCountError,
     DiceRollCountError,
     DiceRollIndexError,
     DieValueError,
 )
-
-# Imported for criteria checking (ensures we can call is_playable and related functions)
-from yaht.playable import (  # Added to integrate with playable.py for meets_criteria
-    _is_playable_standard_rules,
-    is_playable,
-)
-from yaht.scorecard import ScorecardLike
 
 DiceList: TypeAlias = list[int]
 
@@ -24,41 +15,63 @@ DiceList: TypeAlias = list[int]
 class DiceRoll:
     def __init__(self, dice_list: DiceList):
         """Validate dice_list in accord with Yahtzee rules and initialize class."""
-        # Validate input per Yahtzee rules: exactly 5 dice, each with value 1-6
+        # Check if we have exactly 5 dice
         if len(dice_list) != 5:
-            raise DiceCountError(f"Invalid dice count: {len(dice_list)}. Must be exactly 5.")
-        if not all(1 <= die <= 6 for die in dice_list):
-            raise DieValueError("All dice values must be integers between 1 and 6.")
-        # Store the validated dice list
-        self._values = dice_list
+            raise DiceCountError(f"Invalid dice count: {len(dice_list)}")
 
-    def map_value_to_count(self) -> dict[int, int]:
-        """Return dict, keys: die value (1-6), values: count frequency."""
-        count = Counter(self._values)
-        # Ensure all keys from 1-6 are present, with 0 for missing values
-        return {i: count.get(i, 0) for i in range(1, 7)}
+        # Check if all dice values are between 1 and 6
+        if any(d < 1 or d > 6 for d in dice_list):
+            raise DieValueError("The value of all dice must be between 1 and 6.")
 
-    def map_count_to_values(self) -> dict[int, list[int]]:
+        # Copy to avoid risk that dice_list argument is later mutated by caller
+        self._dice = dice_list.copy()
+
+    def __repr__(self) -> str:
+        """Return string representation of the dice roll."""
+        return f"DiceRoll({self._dice})"
+
+    def __len__(self) -> int:
+        """Return the number of dice (always 5 for Yahtzee)."""
+        return len(self._dice)
+
+    def __eq__(self, other: Any) -> bool:
+        """Check equality with another DiceRoll (order independent)."""
+        if not isinstance(other, DiceRoll):
+            return NotImplemented
+        return sorted(self._dice) == sorted(other._dice)
+
+    def __hash__(self) -> int:
+        """Make DiceRoll hashable (useful for sets/dicts)."""
+        return hash(tuple(sorted(self._dice)))
+
+    @property
+    def dice(self) -> list[int]:
+        """Return a copy of the dice list."""
+        return self._dice.copy()
+
+    @property
+    def value_map(self) -> dict[int, int]:
+        """Return dict, keys: die value (1-6), values; count frequency."""
+        return {die_value: self._dice.count(die_value) for die_value in range(1, 7)}
+
+    @property
+    def count_map(self) -> dict[int, list[int]]:
         """Return dict, keys: count frequency (include 0), values: die values."""
-        count = Counter(self._values)
-        # Initialize result with keys 0-5 (max count is 5 for Yahtzee)
-        result = {i: [] for i in range(6)}
-        # Populate based on counts for each die value
-        for val in range(1, 7):
-            cnt = count.get(val, 0)
-            result[cnt].append(val)
-        return result
+        count_to_values_map: dict[int, list[int]] = {count: [] for count in range(0, 6)}
+        for die_value, die_count in self.value_map.items():
+            count_to_values_map[die_count].append(die_value)
+        return count_to_values_map
 
-    def meets_criteria(self, category: Category, card: None | ScorecardLike = None) -> bool:
-        """True if category criteria met else False. Apply joker rules if card is not None."""
-        # If no card is provided, use standard rules without joker logic
-        if card is None:
-            return _is_playable_standard_rules(
-                category, self._values, match_zero_playable=False
-            )
-        # If card is provided, use full is_playable to include joker rules
-        else:
-            return is_playable(category, self._values, card, match_zero_playable=False)
+    def __getitem__(self, index: int) -> int:
+        """Get die value at specified index."""
+        try:
+            return self._dice[index]
+        except IndexError as e:
+            raise DiceRollIndexError(f"Index {index} out of range for dice roll") from e
+
+    def __iter__(self) -> Iterator[int]:
+        """Iterate over dice values."""
+        return iter(self._dice)
 
 
 class Dice:
