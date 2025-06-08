@@ -310,5 +310,48 @@ class TestGetPlayableCategories(BaseScorecardTest):
         self.assertEqual(set(playable), expected)
 
 
+class TestPerfectGame(unittest.TestCase):
+    class TestPerfectGame(unittest.TestCase):
+        def test_perfect_yahtzee_game_scores_1575(self):
+            card = Scorecard()
+
+            # Step 1: Score YAHTZEE with [6,6,6,6,6]
+            sixes = [6] * 5
+            card.set_category_score(Category.YAHTZEE, sixes)
+
+            # Step 2: Score SIXES immediately (required by Joker rule)
+            card.set_category_score(Category.SIXES, sixes)
+
+            # Step 3: Score remaining upper categories with matching Yahtzees
+            upper_map = {
+                1: Category.ACES,
+                2: Category.TWOS,
+                3: Category.THREES,
+                4: Category.FOURS,
+                5: Category.FIVES,
+            }
+            for face in range(1, 6):  # Already did SIXES
+                dice = [face] * 5
+                card.set_category_score(upper_map[face], dice)
+
+            # Step 4: Score lower categories using Joker logic
+            lower_categories = [
+                Category.FULL_HOUSE,  # 25
+                Category.SMALL_STRAIGHT,  # 30
+                Category.LARGE_STRAIGHT,  # 40
+                Category.THREE_OF_A_KIND,  # 30 (sum)
+                Category.FOUR_OF_A_KIND,  # 30 (sum)
+                Category.CHANCE,  # 30 (sum)
+            ]
+            face_cycle = [1, 2, 3, 4, 5, 6]
+            for cat, face in zip(lower_categories, face_cycle):
+                card.set_category_score(cat, [face] * 5)
+
+            # Final assertion
+            self.assertEqual(
+                card.get_card_score(), 1575, f"Expected 1575, got {card.get_card_score()}"
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

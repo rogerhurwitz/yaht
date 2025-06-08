@@ -1,6 +1,6 @@
 # src/yaht/scorecard.py
 
-from typing import Callable, cast
+from typing import Callable, Protocol, cast
 
 from yaht.category import Category
 from yaht.exceptions import (
@@ -15,6 +15,10 @@ from yaht.scoring import score
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63
 YAHTZEE_BONUS_SCORE = 100
+
+
+class ScorecardLike(Protocol):
+    category_scores: dict[Category, int | None]
 
 
 class ScorecardView:

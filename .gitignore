@@ -11,6 +11,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Jupyter notebooks
+*.ipynb
+
 # macOS metadata
 .DS_Store
 
