@@ -23,7 +23,7 @@ class DiceRoll:
         raise NotImplementedError()
 
     def meets_criteria(self, category: Category, card: None | ScorecardLike = None) -> bool:
-        """True if category criteria met else False. Consider joker rules if card."""
+        """True if category criteria met else False. Apply joker rules if card is not None."""
         raise NotImplementedError()
 
 
