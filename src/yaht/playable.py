@@ -6,7 +6,7 @@ from yaht.category import Category
 from yaht.dice import DiceList
 
 if TYPE_CHECKING:
-    from yaht.scorecard import Scorecard
+    from yaht.scorecard import Scorecard, ScorecardView
 
 
 def is_yahtzee(dice: DiceList) -> bool:
@@ -15,7 +15,10 @@ def is_yahtzee(dice: DiceList) -> bool:
 
 
 def is_playable(
-    category: Category, combo: DiceList, card: "Scorecard", match_zero_playable: bool = False
+    category: Category,
+    combo: DiceList,
+    card: "Scorecard | ScorecardView",
+    match_zero_playable: bool = False,
 ) -> bool:
     """True if combo is playable for the specified category/card else False.
 
@@ -23,7 +26,7 @@ def is_playable(
     and special Joker rules for additional Yahtzees.
     """
     # Check if the category is already scored (not playable if it is)
-    if card.scores.get(category) is not None:
+    if category not in Category or card.category_scores.get(category) is not None:
         return False
 
     # Validate dice count and values (aligns with Scorecard._raise_on_invalid_dice)
@@ -31,12 +34,12 @@ def is_playable(
         return False
 
     # Check for Yahtzee and apply Joker rules if Yahtzee is already scored
-    yahtzee_scored = card.scores[Category.YAHTZEE] is not None
+    yahtzee_scored = card.category_scores[Category.YAHTZEE] is not None
     if is_yahtzee(combo) and yahtzee_scored:
         # Determine the corresponding Upper Section category for this Yahtzee
         try:
             upper_match = Category.from_die(combo[0])
-            if card.scores[upper_match] is None:
+            if card.category_scores[upper_match] is None:
                 # Per rules and Scorecard logic, must choose the available Upper Section category
                 return category == upper_match
         except KeyError:

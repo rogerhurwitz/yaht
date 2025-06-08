@@ -20,7 +20,7 @@ class BaseScorecardTest(unittest.TestCase):
 
     def assert_score(self, category: Category, dice: DiceList, expected: int):
         self.card.set_category_score(category, dice)
-        self.assertEqual(self.card.get_category_score(category), expected)
+        self.assertEqual(self.card.category_scores[category], expected)
 
 
 class TestUpperSection(BaseScorecardTest):
@@ -34,7 +34,7 @@ class TestUpperSection(BaseScorecardTest):
         for category in Category.get_upper_categories():
             assert category.die_value is not None
             self.card.set_category_score(category, [category.die_value] * 5)
-        self.assertGreaterEqual(self.card.get_score(), 63 + 35)  # includes bonus
+        self.assertGreaterEqual(self.card.get_card_score(), 63 + 35)  # includes bonus
 
 
 class TestLowerSection(BaseScorecardTest):
@@ -69,8 +69,7 @@ class TestValidation(BaseScorecardTest):
             self.card.set_category_score(Category.THREES, [3, 3, 3, 3, 3])
 
     def test_invalid_category(self):
-        with self.assertRaises(InvalidCategoryError):
-            self.card.get_category_score(cast(Category, "INVALID"))
+        self.assertEqual(self.card.category_scores.get("INVALID"), None)
 
 
 class TestBonuses(BaseScorecardTest):
@@ -87,7 +86,7 @@ class TestBonuses(BaseScorecardTest):
 
     def test_zero_category(self):
         self.card.zero_category(Category.CHANCE)
-        self.assertEqual(self.card.get_category_score(Category.CHANCE), 0)
+        self.assertEqual(self.card.category_scores[Category.CHANCE], 0)
 
         with self.assertRaises(CategoryAlreadyScored):
             self.card.zero_category(Category.CHANCE)
@@ -106,19 +105,19 @@ class TestOriginalMetrics(BaseScorecardTest):
 
     def test_initial_score(self):
         """Confirm that scorecard initial score total is zero."""
-        self.assertEqual(self.card.get_score(), 0)
+        self.assertEqual(self.card.get_card_score(), 0)
 
     def test_yahtzee_scoring(self):
         self.card.set_category_score(Category.YAHTZEE, [6, 6, 6, 6, 6])
-        self.assertEqual(self.card.get_category_score(Category.YAHTZEE), 50)
+        self.assertEqual(self.card.category_scores[Category.YAHTZEE], 50)
 
     def test_chance_scoring(self):
         self.card.set_category_score(Category.CHANCE, [1, 2, 3, 4, 5])
-        self.assertEqual(self.card.get_category_score(Category.CHANCE), 15)
+        self.assertEqual(self.card.category_scores[Category.CHANCE], 15)
 
     def test_null_dice_sets_zero(self):
         self.card.zero_category(Category.FIVES)
-        self.assertEqual(self.card.get_category_score(Category.FIVES), 0)
+        self.assertEqual(self.card.category_scores[Category.FIVES], 0)
 
     def test_upper_section_bonus_awarded(self):
         # Score exactly 63: three of each 1–6
@@ -128,7 +127,7 @@ class TestOriginalMetrics(BaseScorecardTest):
         self.card.set_category_score(Category.FOURS, [4, 4, 4, 1, 2])
         self.card.set_category_score(Category.FIVES, [5, 5, 5, 1, 2])
         self.card.set_category_score(Category.SIXES, [6, 6, 6, 1, 2])
-        total = self.card.get_score()
+        total = self.card.get_card_score()
         self.assertGreaterEqual(total, 63 + 35)
 
     def test_joker_rule_used_when_yahtzee_zeroed(self):
@@ -136,7 +135,7 @@ class TestOriginalMetrics(BaseScorecardTest):
         self.card.zero_category(Category.YAHTZEE)
         # Later roll a Yahtzee again (e.g., five 4s)
         self.card.set_category_score(Category.FOURS, [4, 4, 4, 4, 4])
-        self.assertEqual(self.card.get_category_score(Category.FOURS), 20)
+        self.assertEqual(self.card.category_scores[Category.FOURS], 20)
 
     def test_joker_rule_applies_to_lower_section_if_upper_filled(self):
         # Zero YAHTZEE and fill FOURS
@@ -144,7 +143,7 @@ class TestOriginalMetrics(BaseScorecardTest):
         self.card.set_category_score(Category.FOURS, [4, 4, 2, 1, 1])  # FOURS = 8
         # Now roll five 4s again
         self.card.set_category_score(Category.FULL_HOUSE, [4, 4, 4, 4, 4])
-        self.assertEqual(self.card.get_category_score(Category.FULL_HOUSE), 25)
+        self.assertEqual(self.card.category_scores[Category.FULL_HOUSE], 25)
 
     def test_joker_rule_fallback_zero(self):
         # Zero YAHTZEE and fill all legal options
@@ -181,7 +180,7 @@ class TestOriginalMetrics(BaseScorecardTest):
         self.card.set_category_score(Category.FIVES, [5, 5, 1, 2, 3])
         # YAHTZEE of 5s, valid Joker placement in Chance
         self.card.set_category_score(Category.CHANCE, [5, 5, 5, 5, 5])
-        self.assertEqual(self.card.get_category_score(Category.CHANCE), 25)
+        self.assertEqual(self.card.category_scores[Category.CHANCE], 25)
 
     def test_reject_invalid_joker_category_when_not_allowed(self):
         self.card.zero_category(Category.YAHTZEE)
