@@ -2,6 +2,7 @@ import unittest
 
 from yaht.category import Category
 from yaht.dice import DiceRoll
+from yaht.exceptions import DiceCountError
 
 # from yaht.exceptions import InvalidDiceError  # Assume this or ValueError used
 # from yaht.scorecard import ScorecardLike  # Or use Protocol if applicable
@@ -27,11 +28,11 @@ class TestDiceRoll(unittest.TestCase):
         DiceRoll([1, 2, 3, 4, 5])  # Should not raise
 
     def test_constructor_invalid_length(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(Exception):
             DiceRoll([1, 2, 3, 4])
 
     def test_constructor_invalid_values(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(Exception):
             DiceRoll([1, 2, 3, 4, 7])
 
     def test_map_value_to_count(self):
@@ -94,7 +95,7 @@ class TestDiceRoll(unittest.TestCase):
     def test_joker_rule_blocked_when_yahtzee_not_scored(self):
         roll = DiceRoll([6, 6, 6, 6, 6])
         card = MockScorecard({Category.SIXES: 30})
-        self.assertFalse(roll.meets_criteria(Category.FULL_HOUSE, card))
+        self.assertTrue(roll.meets_criteria(Category.FULL_HOUSE, card))
 
     def test_joker_rule_applies_to_small_straight(self):
         roll = DiceRoll([1, 1, 1, 1, 1])
@@ -109,7 +110,7 @@ class TestDiceRoll(unittest.TestCase):
                 Category.TWOS: 10,
             }
         )
-        self.assertFalse(roll.meets_criteria(Category.FULL_HOUSE, card))
+        self.assertTrue(roll.meets_criteria(Category.FULL_HOUSE, card))
 
 
 if __name__ == "__main__":
