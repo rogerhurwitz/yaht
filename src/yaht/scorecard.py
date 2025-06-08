@@ -43,10 +43,14 @@ class Scorecard:
         }
         self.yahtzee_bonus_count = 0
 
-    def zero_category(self, category: Category) -> None:
+    def zero_category(self, category: Category, dice: list[int]) -> None:
         if self.category_scores[category] is not None:
             raise CategoryAlreadyScored(f"Category {category.name} has already been scored")
         self.category_scores[category] = 0
+
+        # Award Yahtzee bonus if applicable
+        if is_yahtzee(dice) and self.category_scores.get(Category.YAHTZEE) == 50:
+            self.yahtzee_bonus_count += 1
 
     def set_category_score(self, category: Category, dice: list[int]) -> None:
         """Set score for specified category based on dice values."""
@@ -67,16 +71,12 @@ class Scorecard:
 
         # --- Begin Scoring Dice ---
 
+        # Handle Yahtzee bonus first
+        if is_yahtzee(dice) and self.category_scores[Category.YAHTZEE] == 50:
+            self.yahtzee_bonus_count += 1
+
         # Call the appropriate scorer
         self.category_scores[category] = score(category, dice)
-
-        # Handle Yahtzee bonus
-        if (
-            is_yahtzee(dice)
-            and category != Category.YAHTZEE
-            and self.category_scores[Category.YAHTZEE] == 50
-        ):
-            self.yahtzee_bonus_count += 1
 
     def get_card_score(self) -> int:
         """Get the score across all categories including bonuses."""

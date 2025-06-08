@@ -18,12 +18,12 @@ class TestTestPlayer(unittest.TestCase):
             dice = Dice()
             category = self.plyr.take_turn(dice, self.card.view)
             if not is_playable(category, dice.values, self.card, match_zero_playable=True):
-                raise (InvalidCategoryError(f"Category: {category}"))
+                raise InvalidCategoryError(f"Category: {category}")
 
             if is_playable(category, dice.values, self.card, match_zero_playable=False):
                 self.card.set_category_score(category, dice.values)
             else:
-                self.card.zero_category(category)
+                self.card.zero_category(category, dice.values)
 
     def test_player_not_none(self):
         self.assertIsNotNone(self.plyr)
