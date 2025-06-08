@@ -76,7 +76,7 @@ def _is_playable_standard_rules(
     counter = Counter(combo)
     sorted_combo = sorted(combo)
 
-    if category in Category.get_upper_categories():
+    if category in Category.get_upper_categories() or category == Category.CHANCE:
         return True  # Always playable if unscored
 
     if category == Category.THREE_OF_A_KIND:
@@ -97,8 +97,5 @@ def _is_playable_standard_rules(
 
     if category == Category.YAHTZEE:
         return is_yahtzee(combo)
-
-    if category == Category.CHANCE:
-        return True
 
     return False

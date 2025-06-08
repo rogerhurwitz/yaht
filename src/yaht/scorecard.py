@@ -84,25 +84,17 @@ class Scorecard:
 
     def get_card_score(self) -> int:
         """Get the score across all categories including bonuses."""
-        # Calculate upper section score
-        upper_score: int = 0
-        for cat in Category.get_upper_categories():
-            if self.category_scores[cat] is not None:
-                upper_score += cast(int, self.category_scores[cat])
+        upper_score = sum(
+            self.category_scores[cat] or 0 for cat in Category.get_upper_categories()
+        )
 
-        # Add upper section bonus if applicable
+        lower_score = sum(
+            self.category_scores[cat] or 0 for cat in Category.get_lower_categories()
+        )
+
         upper_bonus = UPPER_BONUS_SCORE if upper_score >= UPPER_BONUS_THRESHOLD else 0
-
-        # Calculate lower section score
-        lower_score = 0
-        for cat in Category.get_upper_categories():
-            if self.category_scores[cat] is not None:
-                lower_score += cast(int, self.category_scores[cat])
-
-        # Add Yahtzee bonus
         yahtzee_bonus = self.yahtzee_bonus_count * YAHTZEE_BONUS_SCORE
 
-        # Return total score
         return upper_score + upper_bonus + lower_score + yahtzee_bonus
 
     def get_unscored_categories(self) -> list[Category]:
