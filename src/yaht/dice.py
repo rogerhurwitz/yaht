@@ -1,10 +1,30 @@
 # src/yaht/dice.py
 import random
-from typing import Callable
+from typing import Callable, TypeAlias
 
+from yaht.category import Category
 from yaht.exceptions import DiceRollCountError, DiceRollIndexError
+from yaht.scorecard import ScorecardLike
 
-DiceList = list[int]
+DiceList: TypeAlias = list[int]
+
+
+class DiceRoll:
+    def __init__(self, dice_list: DiceList):
+        """Validate dice_list in accord with Yahtzee rules and initialize class."""
+        raise NotImplementedError()
+
+    def map_value_to_count(self) -> dict[int, int]:
+        """Return dict, keys: die value (1-6), values; count frequency."""
+        raise NotImplementedError()
+
+    def map_count_to_values(self) -> dict[int, list[int]]:
+        """Return dict, keys: count frequency (include 0), values: die values."""
+        raise NotImplementedError()
+
+    def meets_criteria(self, category: Category, card: None | ScorecardLike = None) -> bool:
+        """True if category criteria met else False. Consider joker rules if card."""
+        raise NotImplementedError()
 
 
 class Dice:

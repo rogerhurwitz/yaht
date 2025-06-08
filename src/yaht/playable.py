@@ -1,9 +1,11 @@
 # src/yaht/validate.py
 from collections import Counter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 from yaht.category import Category
-from yaht.dice import DiceList
+
+# from yaht.dice import DiceList
+DiceList: TypeAlias = list[int]
 
 if TYPE_CHECKING:
     from yaht.scorecard import ScorecardLike  # Needed to avoid circular dependency
