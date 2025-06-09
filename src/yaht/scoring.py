@@ -1,6 +1,10 @@
 # src/yaht/scoring.py
+from typing import TypeAlias
+
 from yaht.category import Category
-from yaht.dice import DiceList
+
+# from yaht.dice import DiceList
+DiceList: TypeAlias = list[int]
 
 
 def score(category: Category, combo: DiceList) -> int:

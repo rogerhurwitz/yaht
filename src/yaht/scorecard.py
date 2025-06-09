@@ -1,15 +1,14 @@
 # src/yaht/scorecard.py
 
-from typing import Callable, Protocol, cast
+from typing import Callable, Protocol
 
 from yaht.category import Category
+from yaht.dice import DiceRoll
 from yaht.exceptions import (
     CategoryAlreadyScored,
-    DiceCountError,
-    DieValueError,
     InvalidCategoryError,
 )
-from yaht.playable import is_playable, is_yahtzee
+from yaht.playable import is_playable
 from yaht.scoring import score
 
 UPPER_BONUS_SCORE = 35
@@ -47,16 +46,16 @@ class Scorecard:
         }
         self.yahtzee_bonus_count = 0
 
-    def zero_category(self, category: Category, dice: list[int]) -> None:
+    def zero_category(self, category: Category, roll: DiceRoll) -> None:
         if self.category_scores[category] is not None:
             raise CategoryAlreadyScored(f"Category {category.name} has already been scored")
         self.category_scores[category] = 0
 
         # Award Yahtzee bonus if applicable
-        if is_yahtzee(dice) and self.category_scores.get(Category.YAHTZEE) == 50:
+        if Category.YAHTZEE in roll and self.category_scores.get(Category.YAHTZEE) == 50:
             self.yahtzee_bonus_count += 1
 
-    def set_category_score(self, category: Category, dice: list[int]) -> None:
+    def set_category_score(self, category: Category, roll: DiceRoll) -> None:
         """Set score for specified category based on dice values."""
 
         #  --- Check for Input Errors  ---
@@ -67,53 +66,37 @@ class Scorecard:
         if self.category_scores[category] is not None:
             raise CategoryAlreadyScored(f"Category {category.name} has already been scored")
 
-        self._raise_on_invalid_dice(dice)
-
         # --- Validate playability ---
-        if not is_playable(category, dice, self):
-            raise InvalidCategoryError(f"Unplayable {category.name} combination: {dice}")
+        if not is_playable(category, roll, self):
+            raise InvalidCategoryError(f"Unplayable {category.name} combination: {roll}")
 
         # --- Begin Scoring Dice ---
 
         # Handle Yahtzee bonus first
-        if is_yahtzee(dice) and self.category_scores[Category.YAHTZEE] == 50:
+        if Category.YAHTZEE in roll and self.category_scores[Category.YAHTZEE] == 50:
             self.yahtzee_bonus_count += 1
 
         # Call the appropriate scorer
-        self.category_scores[category] = score(category, dice)
+        self.category_scores[category] = score(category, roll.numbers)
 
     def get_card_score(self) -> int:
         """Get the score across all categories including bonuses."""
-        # Calculate upper section score
-        upper_score: int = 0
-        for cat in Category.get_upper_categories():
-            if self.category_scores[cat] is not None:
-                upper_score += cast(int, self.category_scores[cat])
+        upper_score = sum(
+            self.category_scores[cat] or 0 for cat in Category.get_upper_categories()
+        )
 
-        # Add upper section bonus if applicable
+        lower_score = sum(
+            self.category_scores[cat] or 0 for cat in Category.get_lower_categories()
+        )
+
         upper_bonus = UPPER_BONUS_SCORE if upper_score >= UPPER_BONUS_THRESHOLD else 0
-
-        # Calculate lower section score
-        lower_score = 0
-        for cat in Category.get_upper_categories():
-            if self.category_scores[cat] is not None:
-                lower_score += cast(int, self.category_scores[cat])
-
-        # Add Yahtzee bonus
         yahtzee_bonus = self.yahtzee_bonus_count * YAHTZEE_BONUS_SCORE
 
-        # Return total score
         return upper_score + upper_bonus + lower_score + yahtzee_bonus
 
     def get_unscored_categories(self) -> list[Category]:
         """Return a list of categories that have not been scored yet."""
         return [cat for cat, score in self.category_scores.items() if score is None]
-
-    def _raise_on_invalid_dice(self, dice: list[int]) -> None:
-        if len(dice) != 5:
-            raise DiceCountError(f"Invalid dice count: {len(dice)}")
-        if any(d < 1 or d > 6 for d in dice):
-            raise DieValueError("The value of all dice must be between 1 and 6.")
 
     def __str__(self) -> str:
         scored = {
