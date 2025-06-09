@@ -3,9 +3,9 @@ import unittest
 from yaht.category import Category
 from yaht.dice import Dice
 from yaht.exceptions import InvalidCategoryError
-from yaht.playable import is_playable
 from yaht.player import TestPlayer
 from yaht.scorecard import Scorecard
+from yaht.scorecheck import is_scoreable
 
 
 class TestTestPlayer(unittest.TestCase):
@@ -17,10 +17,10 @@ class TestTestPlayer(unittest.TestCase):
         for _turn in range(13):
             dice = Dice()
             category = self.plyr.take_turn(dice, self.card.view)
-            if not is_playable(category, dice.values, self.card, zero_scoring_okay=True):
+            if not is_scoreable(category, dice.values, self.card, zero_scoring_okay=True):
                 raise InvalidCategoryError(f"Category: {category}")
 
-            if is_playable(category, dice.values, self.card, zero_scoring_okay=False):
+            if is_scoreable(category, dice.values, self.card, zero_scoring_okay=False):
                 self.card.set_category_score(category, dice.values)
             else:
                 self.card.zero_category(category, dice.values)

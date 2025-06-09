@@ -9,9 +9,8 @@ from yaht.exceptions import (
     DieValueError,
     InvalidCategoryError,
 )
-from yaht.playable import is_playable
 from yaht.scorecard import Scorecard
-from yaht.scoring import score
+from yaht.scorecheck import calculate_score, is_scoreable
 
 
 class BaseScorecardTest(unittest.TestCase):
@@ -95,7 +94,7 @@ class TestBonuses(BaseScorecardTest):
 class TestScoringModule(BaseScorecardTest):
     def test_invalid_category(self):
         with self.assertRaises(ValueError):
-            score(cast(Category, "INVALID"), [1, 2, 3, 4, 5])
+            calculate_score(cast(Category, "INVALID"), [1, 2, 3, 4, 5])
 
 
 class TestOriginalMetrics(BaseScorecardTest):
@@ -233,7 +232,7 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.SMALL_STRAIGHT,
             Category.CHANCE,
         }
-        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        playable = [cat for cat in Category if is_scoreable(cat, dice, self.card)]
         self.assertEqual(set(playable), expected)
 
     def test_three_of_a_kind_and_upper_options(self):
@@ -248,7 +247,7 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.SIXES,
             Category.CHANCE,
         }
-        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        playable = [cat for cat in Category if is_scoreable(cat, dice, self.card)]
         self.assertEqual(set(playable), expected)
 
     def test_full_house_included(self):
@@ -264,7 +263,7 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.FIVES,
             Category.CHANCE,
         }
-        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        playable = [cat for cat in Category if is_scoreable(cat, dice, self.card)]
         self.assertEqual(set(playable), expected)
 
     def test_yahtzee_joker_rule_behavior(self):
@@ -273,7 +272,7 @@ class TestGetPlayableCategories(BaseScorecardTest):
 
         # Case 1: SIXES is open — must use SIXES
         expected = {Category.SIXES}
-        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        playable = [cat for cat in Category if is_scoreable(cat, dice, self.card)]
         self.assertEqual(set(playable), expected)
 
         # Case 2: SIXES scored — Joker rules allow specific Lower categories
@@ -286,13 +285,13 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.LARGE_STRAIGHT,
             Category.CHANCE,
         }
-        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        playable = [cat for cat in Category if is_scoreable(cat, dice, self.card)]
         self.assertEqual(set(playable), expected)
 
     def test_category_already_scored_excluded(self):
         self.card.set_category_score(Category.FIVES, [5, 5, 5, 2, 3])
         dice = [5, 5, 5, 2, 3]
-        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        playable = [cat for cat in Category if is_scoreable(cat, dice, self.card)]
         self.assertNotIn(Category.FIVES, playable)
 
     def test_unplayable_combo_limited_options(self):
@@ -306,7 +305,7 @@ class TestGetPlayableCategories(BaseScorecardTest):
             Category.SIXES,
             Category.CHANCE,
         }
-        playable = [cat for cat in Category if is_playable(cat, dice, self.card)]
+        playable = [cat for cat in Category if is_scoreable(cat, dice, self.card)]
         self.assertEqual(set(playable), expected)
 
 

@@ -8,11 +8,47 @@ if TYPE_CHECKING:
     from yaht.scorecard import ScorecardLike  # Needed to avoid circular dependency
 
 
-def is_playable(
+def calculate_score(category: Category, roll: DiceRoll) -> int:
+    # We'll rely on the caller to validate playability
+    match category:
+        case (
+            Category.ACES
+            | Category.TWOS
+            | Category.THREES
+            | Category.FOURS
+            | Category.FIVES
+            | Category.SIXES
+        ):
+            return _calculate_upper_category_score(category, roll)
+        case Category.THREE_OF_A_KIND:
+            return sum(roll)
+        case Category.FOUR_OF_A_KIND:
+            return sum(roll)
+        case Category.FULL_HOUSE:
+            return 25
+        case Category.SMALL_STRAIGHT:
+            return 30
+        case Category.LARGE_STRAIGHT:
+            return 40
+        case Category.YAHTZEE:
+            return 50
+        case Category.CHANCE:
+            return sum(roll)
+        case _:
+            raise ValueError(f"Unknown category: {category}")
+
+
+def _calculate_upper_category_score(category: Category, roll: DiceRoll) -> int:
+    """Sum only dice values matching category (e.g, Twos: [2, 3, 4, 2, 5] -> 4."""
+    target_die = category.die_value
+    return sum(d for d in roll if d == target_die)
+
+
+def is_scoreable(
     category: Category,
     roll: DiceRoll,
     card: "ScorecardLike",
-    zero_scoring_okay: bool = False,
+    zero_scoreable: bool = False,
 ) -> bool:
     """True if combo is playable for the specified category/card else False."""
 
@@ -23,7 +59,7 @@ def is_playable(
     if _joker_rules_active(roll, card):
         return _is_playable_joker_rules(category, roll, card)
 
-    return _is_playable_standard_rules(category, roll, zero_scoring_okay)
+    return _is_playable_standard_rules(category, roll, zero_scoreable)
 
 
 def _is_scored(category: Category, card: "ScorecardLike") -> bool:
@@ -55,10 +91,10 @@ def _is_playable_joker_rules(
 
 
 def _is_playable_standard_rules(
-    category: Category, roll: DiceRoll, zero_scoring_okay: bool
+    category: Category, roll: DiceRoll, zero_scoreable: bool
 ) -> bool:
     # Any unscored category is playable when okay to score a category as zero
-    if zero_scoring_okay:
+    if zero_scoreable:
         return True
-
+    # Otherwise, roll combination requirements (if any) must be met
     return category in roll

@@ -8,8 +8,7 @@ from yaht.exceptions import (
     CategoryAlreadyScored,
     InvalidCategoryError,
 )
-from yaht.playable import is_playable
-from yaht.scoring import score
+from yaht.scorecheck import calculate_score, is_scoreable
 
 UPPER_BONUS_SCORE = 35
 UPPER_BONUS_THRESHOLD = 63
@@ -67,7 +66,7 @@ class Scorecard:
             raise CategoryAlreadyScored(f"Category {category.name} has already been scored")
 
         # --- Validate playability ---
-        if not is_playable(category, roll, self):
+        if not is_scoreable(category, roll, self):
             raise InvalidCategoryError(f"Unplayable {category.name} combination: {roll}")
 
         # --- Begin Scoring Dice ---
@@ -77,7 +76,7 @@ class Scorecard:
             self.yahtzee_bonus_count += 1
 
         # Call the appropriate scorer
-        self.category_scores[category] = score(category, roll.numbers)
+        self.category_scores[category] = calculate_score(category, roll.numbers)
 
     def get_card_score(self) -> int:
         """Get the score across all categories including bonuses."""
