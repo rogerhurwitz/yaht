@@ -2,7 +2,7 @@
 from collections import Counter
 from typing import Any, Iterator
 
-from yaht.category import Category
+from yaht.category import Category, Section
 from yaht.exceptions import (
     DiceCountError,
     DieValueError,
@@ -41,11 +41,14 @@ class DiceRoll:
         """Make DiceRoll hashable (useful for sets/dicts)."""
         return hash(tuple(sorted(self._numbers)))
 
-    def __contains__(self, element: Category | int) -> bool:
+    def __contains__(self, element: Any) -> bool:
         if isinstance(element, int):
             return element in self._numbers
 
-        if element in Category.get_upper_categories() or element == Category.CHANCE:
+        if not isinstance(element, Category):
+            return False
+
+        if element.section == Section.UPPER or element == Category.CHANCE:
             return True  # These categories are unconstrained (apart from joker rules)
 
         number_counts = Counter(self._numbers).values()
