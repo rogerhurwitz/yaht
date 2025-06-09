@@ -5,8 +5,8 @@ Section = Enum("Section", ["UPPER", "LOWER"])
 
 
 class CategoryValue(NamedTuple):
-    catid: str
-    die_value: int | None
+    name: str
+    number: int | None
     section: Section
 
 
@@ -27,8 +27,8 @@ class Category(Enum):
     CHANCE = CategoryValue("CHANCE", None, Section.LOWER)
 
     @property
-    def die_value(self) -> int | None:
-        return self.value.die_value
+    def number(self) -> int | None:
+        return self.value.number
 
     @property
     def section(self) -> Section:
@@ -43,7 +43,7 @@ class Category(Enum):
         return [c for c in cls if c.section == Section.LOWER]
 
     @classmethod
-    def from_die(cls, die: int) -> "Category":
+    def from_number(cls, die: int) -> "Category":
         return {
             1: cls.ACES,
             2: cls.TWOS,

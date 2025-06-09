@@ -1,7 +1,7 @@
 # src/yaht/validate.py
 from typing import TYPE_CHECKING
 
-from yaht.category import Category
+from yaht.category import Category, Section
 from yaht.dice import DiceRoll
 
 if TYPE_CHECKING:
@@ -9,39 +9,31 @@ if TYPE_CHECKING:
 
 
 def calculate_score(category: Category, roll: DiceRoll) -> int:
-    # We'll rely on the caller to validate playability
-    match category:
-        case (
-            Category.ACES
-            | Category.TWOS
-            | Category.THREES
-            | Category.FOURS
-            | Category.FIVES
-            | Category.SIXES
-        ):
-            return _calculate_upper_category_score(category, roll)
-        case Category.THREE_OF_A_KIND:
-            return sum(roll)
-        case Category.FOUR_OF_A_KIND:
-            return sum(roll)
-        case Category.FULL_HOUSE:
-            return 25
-        case Category.SMALL_STRAIGHT:
-            return 30
-        case Category.LARGE_STRAIGHT:
-            return 40
-        case Category.YAHTZEE:
-            return 50
-        case Category.CHANCE:
-            return sum(roll)
-        case _:
-            raise ValueError(f"Unknown category: {category}")
+    # We'll rely on the caller to validate scoreability
+    if category.section == Section.UPPER:
+        return _calculate_upper_score(category, roll)
+    elif category is Category.THREE_OF_A_KIND:
+        return sum(roll)
+    elif category is Category.FOUR_OF_A_KIND:
+        return sum(roll)
+    elif category is Category.FULL_HOUSE:
+        return 25
+    elif category is Category.SMALL_STRAIGHT:
+        return 30
+    elif category is Category.LARGE_STRAIGHT:
+        return 40
+    elif category is Category.YAHTZEE:
+        return 50
+    elif category is Category.CHANCE:
+        return sum(roll)
+    else:
+        raise ValueError(f"Unknown category: {category}")
 
 
-def _calculate_upper_category_score(category: Category, roll: DiceRoll) -> int:
+def _calculate_upper_score(category: Category, roll: DiceRoll) -> int:
     """Sum only dice values matching category (e.g, Twos: [2, 3, 4, 2, 5] -> 4."""
-    target_die = category.die_value
-    return sum(d for d in roll if d == target_die)
+    target_number = category.number
+    return sum(n for n in roll if n == target_number)
 
 
 def is_scoreable(
@@ -57,9 +49,9 @@ def is_scoreable(
         return False
 
     if _joker_rules_active(roll, card):
-        return _is_playable_joker_rules(category, roll, card)
+        return _is_scoreable_joker_rules(category, roll, card)
 
-    return _is_playable_standard_rules(category, roll, zero_scoreable)
+    return _is_scoreable_standard_rules(category, roll, zero_scoreable)
 
 
 def _is_scored(category: Category, card: "ScorecardLike") -> bool:
@@ -71,11 +63,11 @@ def _joker_rules_active(roll: DiceRoll, card: "ScorecardLike") -> bool:
     return _is_scored(Category.YAHTZEE, card)
 
 
-def _is_playable_joker_rules(
+def _is_scoreable_joker_rules(
     category: Category, roll: DiceRoll, card: "ScorecardLike"
 ) -> bool:
     # Under joker rules, free upper matching category must be scored first
-    matched_category = Category.from_die(roll[0])
+    matched_category = Category.from_number(roll[0])
     if not _is_scored(matched_category, card):
         return category == matched_category
 
@@ -90,10 +82,10 @@ def _is_playable_joker_rules(
     return True if no_free_lower_categories else False
 
 
-def _is_playable_standard_rules(
+def _is_scoreable_standard_rules(
     category: Category, roll: DiceRoll, zero_scoreable: bool
 ) -> bool:
-    # Any unscored category is playable when okay to score a category as zero
+    # Any category is scoreable when okay to assign zero as score
     if zero_scoreable:
         return True
     # Otherwise, roll combination requirements (if any) must be met

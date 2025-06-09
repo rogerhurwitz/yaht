@@ -31,8 +31,8 @@ class TestUpperSection(BaseScorecardTest):
 
     def test_upper_bonus_awarded(self):
         for category in Category.get_upper_categories():
-            assert category.die_value is not None
-            self.card.set_category_score(category, [category.die_value] * 5)
+            assert category.number is not None
+            self.card.set_category_score(category, [category.number] * 5)
         self.assertGreaterEqual(self.card.get_card_score(), 63 + 35)  # includes bonus
 
 
