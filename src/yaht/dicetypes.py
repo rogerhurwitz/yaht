@@ -1,17 +1,53 @@
 # src/yaht/dice.py
 from collections import Counter
+from random import randint
 from typing import Any, Iterator
 
 from yaht.category import Category, Section
 from yaht.exceptions import (
     DiceCountError,
+    DiceRollCountError,
     DieValueError,
 )
 
+MAX_ROLL_COUNT = 3
+
+
+class DiceCup:
+    def __init__(self):
+        self._roll_count = 0
+        self._stored_roll: DiceRoll | None = None
+
+    def roll_dice(self, indices: list[int] | None = None) -> "DiceRoll":
+        # Manage roll cup lifecycle
+        self._roll_count += 1
+        if self._roll_count > MAX_ROLL_COUNT:
+            raise DiceRollCountError()
+
+        # Do full dice rull first time through or if no indices specified
+        if self._stored_roll is None or indices is None:
+            self._stored_roll = DiceRoll()
+            return DiceRoll(self._stored_roll.numbers)  # copy for safety
+
+        # On re-roll (with indices) do index-based reroll
+        updated_numbers = self._stored_roll.numbers
+        for index in indices:
+            updated_numbers[index] = randint(1, 6)
+        self._stored_roll = DiceRoll(updated_numbers)
+
+        return DiceRoll(self._stored_roll.numbers)  # copy for safety
+
+    @property
+    def current_role(self) -> "DiceRoll | None":
+        return None if self._stored_roll is None else DiceRoll(self._stored_roll.numbers)
+
 
 class DiceRoll:
-    def __init__(self, numbers: list[int]):
+    def __init__(self, numbers: list[int] | None = None):
         """Validate dice_list in accord with Yahtzee rules and initialize class."""
+        if numbers is None:
+            numbers = [randint(1, 6) for _ in range(5)]
+
         # Check if we have exactly 5 dice
         if len(numbers) != 5:
             raise DiceCountError(f"Invalid dice count: {len(numbers)}")

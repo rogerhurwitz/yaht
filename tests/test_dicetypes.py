@@ -1,12 +1,59 @@
 import unittest
 
-from yaht.category import Category
-from yaht.dice import DiceRoll
+# tests/test_dicecup.py
+from unittest.mock import patch
 
-# from yaht.exceptions import (
-#     Exception,
-#     Exception,
-# )
+from yaht.category import Category
+from yaht.dicetypes import MAX_ROLL_COUNT, DiceCup, DiceRoll
+from yaht.exceptions import DiceRollCountError
+
+
+class TestDiceCup(unittest.TestCase):
+    def test_first_roll_generates_dice_roll(self):
+        cup = DiceCup()
+        roll = cup.roll_dice()
+        self.assertIsInstance(roll, DiceRoll)
+        self.assertEqual(len(roll), 5)
+        for die in roll:
+            self.assertIn(die, range(1, 7))
+
+    def test_reroll_changes_specified_dice_only(self):
+        with patch("yaht.dicetypes.randint", side_effect=[2, 3, 4, 5, 6, 1, 1]):
+            cup = DiceCup()
+            _ = cup.roll_dice()
+            # Initial should be [2, 3, 4, 5, 6]
+            rerolled = cup.roll_dice(indices=[0, 1])
+            # Next two values in mock: [1, 1] should replace indices 0 and 1
+            expected = [1, 1, 4, 5, 6]
+            self.assertEqual(rerolled.numbers, expected)
+
+    def test_roll_limit_raises_error(self):
+        cup = DiceCup()
+        for _ in range(MAX_ROLL_COUNT):
+            cup.roll_dice()
+        with self.assertRaises(DiceRollCountError):
+            cup.roll_dice()
+
+    def test_roll_isolated_from_mutation(self):
+        cup = DiceCup()
+        roll = cup.roll_dice()
+        roll.numbers[0] = 42  # attempt mutation on copy
+        self.assertNotEqual(cup.current_role.numbers[0], 42)
+
+    def test_current_role_returns_copy(self):
+        cup = DiceCup()
+        roll1 = cup.roll_dice()
+        roll2 = cup.current_role
+        self.assertIsInstance(roll2, DiceRoll)
+        self.assertEqual(roll1, roll2)
+        self.assertIsNot(roll1, roll2)  # ensure it's a copy
+
+    def test_current_role_is_none_before_first_roll(self):
+        self.assertIsNone(DiceCup().current_role)
+
+
+if __name__ == "__main__":
+    unittest.main()
 
 
 class TestDiceRollInitialization(unittest.TestCase):
@@ -24,37 +71,37 @@ class TestDiceRollInitialization(unittest.TestCase):
 
     def test_invalid_dice_count_too_few(self):
         """Test error when fewer than 5 dice provided."""
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             DiceRoll([1, 2, 3, 4])
         # self.assertEqual(str(cm.exception), "Invalid dice count: 4")
 
     def test_invalid_dice_count_too_many(self):
         """Test error when more than 5 dice provided."""
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             DiceRoll([1, 2, 3, 4, 5, 6])
         # self.assertEqual(str(cm.exception), "Invalid dice count: 6")
 
     def test_invalid_dice_count_empty(self):
         """Test error when empty dice list provided."""
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             DiceRoll([])
         # self.assertEqual(str(cm.exception), "Invalid dice count: 0")
 
     def test_invalid_die_value_too_low(self):
         """Test error when die value is below 1."""
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             DiceRoll([0, 2, 3, 4, 5])
         # self.assertEqual(str(cm.exception), "The value of all dice must be between 1 and 6.")
 
     def test_invalid_die_value_too_high(self):
         """Test error when die value is above 6."""
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             DiceRoll([1, 2, 3, 4, 7])
         # self.assertEqual(str(cm.exception), "The value of all dice must be between 1 and 6.")
 
     def test_invalid_die_value_negative(self):
         """Test error when die value is negative."""
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             DiceRoll([-1, 2, 3, 4, 5])
         # self.assertEqual(str(cm.exception), "The value of all dice must be between 1 and 6.")
 
