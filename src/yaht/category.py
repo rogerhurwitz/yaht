@@ -27,7 +27,7 @@ class Category(Enum):
     CHANCE = CategoryValue("CHANCE", None, Section.LOWER)
 
     @property
-    def number(self) -> int | None:
+    def die_number(self) -> int | None:
         return self.value.number
 
     @property

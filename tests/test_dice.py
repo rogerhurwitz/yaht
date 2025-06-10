@@ -1,7 +1,7 @@
 import unittest
 
 from yaht.category import Category
-from yaht.dice import DiceRoll
+from yaht.diceroll import DiceRoll
 
 # from yaht.exceptions import (
 #     Exception,

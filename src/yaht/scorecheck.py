@@ -2,20 +2,17 @@
 from typing import TYPE_CHECKING
 
 from yaht.category import Category, Section
-from yaht.dice import DiceRoll
+from yaht.diceroll import DiceRoll
+from yaht.exceptions import InvalidCategoryError
 
 if TYPE_CHECKING:
     from yaht.scorecard import ScorecardLike  # Needed to avoid circular dependency
 
 
-def calculate_score(category: Category, roll: DiceRoll) -> int:
-    # We'll rely on the caller to validate scoreability
+def calculate_combo_score(category: Category, roll: DiceRoll) -> int:
+    """Determine value of combination based on absolute or relative score."""
     if category.section == Section.UPPER:
         return _calculate_upper_score(category, roll)
-    elif category is Category.THREE_OF_A_KIND:
-        return sum(roll)
-    elif category is Category.FOUR_OF_A_KIND:
-        return sum(roll)
     elif category is Category.FULL_HOUSE:
         return 25
     elif category is Category.SMALL_STRAIGHT:
@@ -24,19 +21,19 @@ def calculate_score(category: Category, roll: DiceRoll) -> int:
         return 40
     elif category is Category.YAHTZEE:
         return 50
-    elif category is Category.CHANCE:
+    elif category in [Category.THREE_OF_A_KIND, Category.FOUR_OF_A_KIND, Category.CHANCE]:
         return sum(roll)
     else:
-        raise ValueError(f"Unknown category: {category}")
+        raise InvalidCategoryError(f"Unknown category: {category}")
 
 
 def _calculate_upper_score(category: Category, roll: DiceRoll) -> int:
     """Sum only dice values matching category (e.g, Twos: [2, 3, 4, 2, 5] -> 4."""
-    target_number = category.number
+    target_number = category.die_number
     return sum(n for n in roll if n == target_number)
 
 
-def is_scoreable(
+def is_combo_scoreable(
     category: Category,
     roll: DiceRoll,
     card: "ScorecardLike",
@@ -48,7 +45,7 @@ def is_scoreable(
     if _is_scored(category, card):
         return False
 
-    if _joker_rules_active(roll, card):
+    if Category.YAHTZEE in roll and _joker_rules_active(roll, card):
         return _is_scoreable_joker_rules(category, roll, card)
 
     return _is_scoreable_standard_rules(category, roll, zero_scoreable)
