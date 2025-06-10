@@ -20,8 +20,9 @@ class Game:
         """Run the full game loop until completion."""
         raise NotImplementedError()
 
-    def winning_players(self) -> list[Player]:
-        """Returns which player(s) won at the end of the game."""
+    @property
+    def winning_players(self) -> list[Player] | None:
+        """Returns winning player(s) at the end of the game."""
         raise NotImplementedError()
 
     def _play_turn(self, player: Player) -> None:
