@@ -28,7 +28,10 @@ wheels/
 *.egg-info/
 dist/
 build/
+
+# Project specific
 *.zip
+*.json
 
 # Editor/IDE artifacts
 *.swp
