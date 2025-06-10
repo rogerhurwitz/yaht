@@ -3,7 +3,7 @@
 from typing import Callable, Protocol
 
 from yaht.category import Category
-from yaht.diceroll import DiceRoll
+from yaht.dicetypes import DiceRoll
 from yaht.exceptions import (
     CategoryAlreadyScored,
     InvalidCategoryError,

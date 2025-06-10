@@ -1,7 +1,7 @@
 import unittest
 
 from yaht.category import Category
-from yaht.diceroll import DiceRoll
+from yaht.dicetypes import DiceRoll
 from yaht.scorecard import Scorecard
 from yaht.scorecheck import is_combo_scoreable
 

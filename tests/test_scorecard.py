@@ -2,7 +2,7 @@ import unittest
 from typing import cast
 
 from yaht.category import Category
-from yaht.diceroll import DiceRoll
+from yaht.dicetypes import DiceRoll
 from yaht.exceptions import (
     CategoryAlreadyScored,
     DiceCountError,
@@ -68,7 +68,7 @@ class TestValidation(BaseScorecardTest):
             self.card.set_category_score(Category.THREES, DiceRoll([3, 3, 3, 3, 3]))
 
     def test_invalid_category(self):
-        self.assertEqual(self.card.category_scores.get("INVALID"), None)
+        self.assertEqual(self.card.category_scores.get(cast(Category, "INVALID")), None)
 
 
 class TestBonuses(BaseScorecardTest):
@@ -148,7 +148,6 @@ class TestOriginalMetrics(BaseScorecardTest):
         # Zero YAHTZEE and fill all legal options
         self.card.zero_category(Category.YAHTZEE, DiceRoll([1, 2, 3, 4, 5]))
         self.card.set_category_score(Category.FOURS, DiceRoll([4, 4, 2, 1, 1]))
-        self.card.set_category_score(Category.TWOS, DiceRoll([4, 4, 2, 1, 1]))
         self.card.set_category_score(Category.FULL_HOUSE, DiceRoll([2, 2, 3, 3, 3]))
         self.card.set_category_score(Category.THREE_OF_A_KIND, DiceRoll([2, 2, 2, 4, 5]))
         self.card.set_category_score(Category.FOUR_OF_A_KIND, DiceRoll([6, 6, 6, 6, 3]))

@@ -3,7 +3,7 @@ import random
 from typing import Protocol
 
 from yaht.category import Category
-from yaht.diceroll import Dice
+from yaht.dicetypes import Dice
 from yaht.scorecard import ScorecardView
 
 

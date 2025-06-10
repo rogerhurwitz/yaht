@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING
 
 from yaht.category import Category, Section
-from yaht.diceroll import DiceRoll
+from yaht.dicetypes import DiceRoll
 from yaht.exceptions import InvalidCategoryError
 
 if TYPE_CHECKING:
